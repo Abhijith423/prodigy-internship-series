@@ -1,0 +1,124 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyStopwatchApp());
+
+class MyStopwatchApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Stopwatch',
+      theme: ThemeData.dark(),
+      home: StopwatchScreen(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class StopwatchScreen extends StatefulWidget {
+  @override
+  _StopwatchScreenState createState() => _StopwatchScreenState();
+}
+
+class _StopwatchScreenState extends State<StopwatchScreen> {
+  late Stopwatch _stopwatch;
+  late Timer _timer;
+
+  String _formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String threeDigits(int n) => n.toString().padLeft(3, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    final milliseconds = threeDigits(duration.inMilliseconds.remainder(1000));
+    return "$minutes:$seconds:$milliseconds";
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _stopwatch = Stopwatch();
+    _timer = Timer.periodic(Duration(milliseconds: 30), (timer) {
+      if (_stopwatch.isRunning) {
+        setState(() {});
+      }
+    });
+  }
+
+  void _startStopwatch() {
+    setState(() => _stopwatch.start());
+  }
+
+  void _pauseStopwatch() {
+    setState(() => _stopwatch.stop());
+  }
+
+  void _resetStopwatch() {
+    setState(() {
+      _stopwatch.reset();
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final timeText = _formatTime(_stopwatch.elapsed);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Container(
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.grey[900],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                timeText,
+                style: TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 2,
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton.icon(
+                    icon: Icon(_stopwatch.isRunning ? Icons.pause : Icons.play_arrow),
+                    label: Text(_stopwatch.isRunning ? "Pause" : "Start"),
+                    onPressed: () {
+                      _stopwatch.isRunning ? _pauseStopwatch() : _startStopwatch();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black87,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.restart_alt),
+                    label: Text("Reset"),
+                    onPressed: _resetStopwatch,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black87,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
