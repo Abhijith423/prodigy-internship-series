@@ -1,0 +1,162 @@
+import 'package:flutter/material.dart';
+import 'dart:ui';
+
+void main() {
+  runApp(const TicTacToeApp());
+}
+
+class TicTacToeApp extends StatelessWidget {
+  const TicTacToeApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Tic Tac Toe',
+      theme: ThemeData.dark(),
+      home: const TicTacToeGame(),
+    );
+  }
+}
+
+class TicTacToeGame extends StatefulWidget {
+  const TicTacToeGame({super.key});
+
+  @override
+  State<TicTacToeGame> createState() => _TicTacToeGameState();
+}
+
+class _TicTacToeGameState extends State<TicTacToeGame> {
+  List<String> board = List.filled(9, '');
+  String currentPlayer = 'X';
+  String? winner;
+
+  void _handleTap(int index) {
+    if (board[index] != '' || winner != null) return;
+
+    setState(() {
+      board[index] = currentPlayer;
+      winner = _checkWinner();
+
+      if (winner == null) {
+        currentPlayer = currentPlayer == 'X' ? 'O' : 'X';
+      }
+    });
+  }
+
+  String? _checkWinner() {
+    const winPatterns = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+      [0, 4, 8], [2, 4, 6],           // diagonals
+    ];
+
+    for (var pattern in winPatterns) {
+      final a = pattern[0], b = pattern[1], c = pattern[2];
+      if (board[a] != '' && board[a] == board[b] && board[b] == board[c]) {
+        return board[a];
+      }
+    }
+
+    if (!board.contains('')) return 'Draw';
+
+    return null;
+  }
+
+  void _resetGame() {
+    setState(() {
+      board = List.filled(9, '');
+      currentPlayer = 'X';
+      winner = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tic Tac Toe'),
+        centerTitle: true,
+        backgroundColor: Colors.black.withOpacity(0.7),
+      ),
+      backgroundColor: const Color(0xFF1F1F1F),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _glassContainer(
+              child: GridView.builder(
+                padding: const EdgeInsets.all(20),
+                itemCount: 9,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                shrinkWrap: true,
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () => _handleTap(index),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: Center(
+                      child: Text(
+                        board[index],
+                        style: TextStyle(
+                          fontSize: 50,
+                          fontWeight: FontWeight.bold,
+                          color: board[index] == 'X' ? Colors.cyanAccent : Colors.pinkAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              winner != null
+                  ? (winner == 'Draw' ? 'It\'s a Draw!' : '$winner Wins!')
+                  : 'Turn: $currentPlayer',
+              style: const TextStyle(fontSize: 22, color: Colors.white70),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _resetGame,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white10,
+                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              child: const Text("Reset", style: TextStyle(fontSize: 18)),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _glassContainer({required Widget child}) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(25),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          width: 320,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
